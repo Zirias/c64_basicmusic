@@ -22,29 +22,36 @@ patpos1:	.res	1
 pat0:		.res	1
 pat1:		.res	1
 pat2:		.res	1
-		.res	2
+stoprq:		.res	1
+stopstep:	.res	1
 wave2:		.res	1
 patpos2:	.res	1
 
-ghostsid:	.res	$14
+ghostsid:	.res	$19
+sidsize		= *-ghostsid
 
 bss_size	= *-bss_start
+
+.data
+stopvol:	.byte	$0,$1,$1,$1,$1,$2,$2,$2,$2,$3,$3,$3,$4,$4,$4,$5,$5
+		.byte	$6,$6,$7,$7,$8,$9,$a,$b,$d
+stoplen		= *-stopvol
 
 .code
 
 .proc player_start
-		ldx	#bss_size
+		jsr	$b79b
+		ldy	#bss_size
 		lda	#$0
-clearloop:	sta	bss_start-1, x
-		dex
+clearloop:	sta	bss_start-1,y
+		dey
 		bne	clearloop
+		stx	speed
 		jsr	sidout
 		lda	#$f
-		sta	$d418
+		sta	ghostsid+$18
 		lda	#HRTIMER+1
 		sta	frame
-		lda	#5
-		sta	speed
 
 		lda	#$7f
 		sta	$dc0d
@@ -63,6 +70,10 @@ clearloop:	sta	bss_start-1, x
 .endproc
 
 .proc player_stop
+		lda	#stoplen-1
+		sta	stopstep
+		lda	#$1
+		sta	stoprq
 		rts
 .endproc
 
@@ -99,7 +110,7 @@ dospeed:	lda	speed
 .endproc
 
 .proc sidout
-		ldx	#$14
+		ldx	#sidsize
 loop:		lda	ghostsid-1,x
 		sta	SIDBASE-1,x
 		dex
@@ -194,7 +205,7 @@ resty:		ldy	#$ff
 .proc setinst
 		asl
 		bcc	noslide
-		and	#$1
+		ora	#$1
 noslide:	lsr
 		tay
 		lda	inst_ad,y
@@ -210,7 +221,24 @@ out:		rts
 .endproc
 
 .proc hrstep
-		ldy	patpos0
+		lda	stoprq
+		beq	nostop
+		ldx	stopstep
+		bpl	fadeout
+		lda	#$0
+		sta	$d01a
+		lda	#$31
+		sta	$314
+		lda	#$ea
+		sta	$315
+		lda	#$81
+		sta	$dc0d
+		jmp	play_out
+fadeout:	lda	stopvol,x
+		sta	ghostsid+$18
+		dex
+		stx	stopstep
+nostop:		ldy	patpos0
 		bne	pos0ok
 advseq0:	ldx	seqpos0
 ldseq0:		lda	seq0,x
