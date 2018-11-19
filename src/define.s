@@ -36,17 +36,29 @@ positive:	jsr	$b79e
 		rts
 .endproc
 
+.proc get_nibbles
+		jsr	$b79b
+		txa
+		asl
+		asl
+		asl
+		asl
+		sta	patargptr+1
+		jsr	$b79b
+		txa
+		ora	patargptr+1
+		rts
+.endproc
+
 .proc def_instr
 		jsr	$b1b2
 		lda	$65
 		sta	patargptr
-		jsr	$b79b
+		jsr	get_nibbles
 		ldy	patargptr
-		txa
 		sta	inst_ad,y
-		jsr	$b79b
+		jsr	get_nibbles
 		ldy	patargptr
-		txa
 		sta	inst_sr,y
 		jsr	$b79b
 		ldy	patargptr
