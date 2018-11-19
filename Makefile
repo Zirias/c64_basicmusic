@@ -2,6 +2,7 @@ C64SYS?=c64
 C64AS?=ca65
 C64LD?=ld65
 VICE?=x64sc
+VICEARGS?=-autostartprgmode 1 -8 testprg.d64
 
 C64ASFLAGS?=-t $(C64SYS) -g
 
@@ -23,7 +24,7 @@ basicmusic_MAP:=basicmusic.map
 all: $(basicmusic_BIN)
 
 run: all
-	$(VICE) -autostart $(basicmusic_BIN) -moncommands $(basicmusic_LABLES)
+	$(VICE) $(VICEARGS) -moncommands $(basicmusic_LABLES) $(basicmusic_BIN)
 
 $(basicmusic_BIN) $(basicmusic_LABLES) $(basicmusic_MAP): \
 	$(basicmusic_OBJS) $(EXTRAOBJ)

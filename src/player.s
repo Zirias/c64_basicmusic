@@ -269,14 +269,24 @@ noslide:	lsr
 		sta	ghostsid+6,x
 		lda	inst_wave,y
 		sta	wave0,x
-		lda	inst_pwidth,y
-		sta	ghostsid+3,x
 		bcs	out
 		lda	#$9
 		sta	ghostsid+4,x
 		lda	#$0
 		sta	chordpos0,x
-out:		rts
+out:		lda	#$0
+		sta	ghostsid+3,x
+		lda	inst_pwidth,y
+		asl
+		rol	ghostsid+3,x
+		asl
+		rol	ghostsid+3,x
+		asl
+		rol	ghostsid+3,x
+		asl
+		rol	ghostsid+3,x
+		sta	ghostsid+2,x
+		rts
 .endproc
 
 .proc hrstep
@@ -368,7 +378,7 @@ pos2ok:		lda	pat2
 note2:		lda	(patargptr),y
 		bmi	out
 		ldx	#$e
-		jmp	dohr
+		jsr	dohr
 out:		jmp	play_out
 .endproc
 
