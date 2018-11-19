@@ -57,7 +57,6 @@ clearloop:	sta	bss_start-1,y
 		bne	clearloop
 		lda	$65
 		sta	speed
-		jsr	sidout
 		lda	#$f
 		sta	ghostsid+$18
 		lda	#HRTIMER+1
