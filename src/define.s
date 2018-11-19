@@ -20,19 +20,61 @@ notes:		.byte	"c@d@ef@g@a@b"
 notes_len	= *-notes
 
 .code
+.proc get_signedbyte
+		jsr	$0073
+		cmp	#'-'
+		beq	negative
+		cmp	#$ab
+		bne	positive
+negative:	jsr	$b79b
+		txa
+		eor	#$ff
+		adc	#$0
+		rts
+positive:	jsr	$b79e
+		txa
+		rts
+.endproc
+
 .proc def_instr
 		jsr	$b1b2
-		ldy	$65
+		lda	$65
+		sta	patargptr
 		jsr	$b79b
 		txa
+		ldy	patargptr
 		sta	inst_ad,y
 		jsr	$b79b
 		txa
+		ldy	patargptr
 		sta	inst_sr,y
 		jsr	$b79b
 		txa
+		ldy	patargptr
 		sta	inst_wave,y
-		rts
+		jsr	get_signedbyte
+		clc
+		adc	#$80
+		ldy	patargptr
+		sta	inst_pwidth,y
+		jsr	$b79b
+		txa
+		ldy	patargptr
+		sta	inst_chordlen,y
+		beq	nochord
+		tya
+		asl
+		asl
+		asl
+		sta	patargptr
+		stx	patpitchptr
+chordloop:	jsr	get_signedbyte
+		ldy	patargptr
+		sta	inst_chord,y
+		inc	patargptr
+		dec	patpitchptr
+		bne	chordloop
+nochord:	rts
 .endproc
 
 .proc fetchchar

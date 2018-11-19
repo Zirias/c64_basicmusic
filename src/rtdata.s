@@ -4,9 +4,8 @@
 .export inst_sr
 .export inst_wave
 .export inst_pwidth
-.export inst_vdelay
-.export inst_vspeed
-.export inst_voff
+.export inst_chordlen
+.export inst_chord
 .export pattern_pitch
 .export pattern_arg
 .export seq0
@@ -18,9 +17,8 @@ inst_ad:	.res	NUM_INSTS
 inst_sr:	.res	NUM_INSTS
 inst_wave:	.res	NUM_INSTS
 inst_pwidth:	.res	NUM_INSTS
-inst_vdelay:	.res	NUM_INSTS
-inst_vspeed:	.res	NUM_INSTS
-inst_voff:	.res	NUM_INSTS
+inst_chordlen:	.res	NUM_INSTS
+inst_chord:	.res	8 * NUM_INSTS
 
 pattern_pitch:	.res	PAT_MAXLEN * NUM_PATS
 pattern_arg:	.res	PAT_MAXLEN * NUM_PATS

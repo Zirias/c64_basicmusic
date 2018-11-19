@@ -12,20 +12,29 @@ HRTIMER		= 2
 bss_start:
 wave0:		.res	1
 patpos0:	.res	1
-speed:		.res	1
-frame:		.res	1
+inst0:		.res	1
+chordpos0:	.res	1
 seqpos0:	.res	1
-seqpos1:	.res	1
-seqpos2:	.res	1
+pat0:		.res	1
+basepitch0:	.res	1
 wave1:		.res	1
 patpos1:	.res	1
-pat0:		.res	1
+inst1:		.res	1
+chordpos1:	.res	1
+seqpos1:	.res	1
 pat1:		.res	1
-pat2:		.res	1
-stoprq:		.res	1
-stopstep:	.res	1
+basepitch1:	.res	1
 wave2:		.res	1
 patpos2:	.res	1
+inst2:		.res	1
+chordpos2:	.res	1
+seqpos2:	.res	1
+pat2:		.res	1
+basepitch2:	.res	1
+speed:		.res	1
+frame:		.res	1
+stoprq:		.res	1
+stopstep:	.res	1
 
 ghostsid:	.res	$19
 sidsize		= *-ghostsid
@@ -53,6 +62,10 @@ clearloop:	sta	bss_start-1,y
 		sta	ghostsid+$18
 		lda	#HRTIMER+1
 		sta	frame
+		lda	#$ff
+		sta	inst0
+		sta	inst1
+		sta	inst2
 
 		lda	#$7f
 		sta	$dc0d
@@ -82,6 +95,12 @@ clearloop:	sta	bss_start-1,y
 		asl	$d019
 		dec	$1
 		jsr	sidout
+		ldx	#$0
+		jsr	dochord
+		ldx	#$7
+		jsr	dochord
+		ldx	#$e
+		jsr	dochord
 		dec	frame
 		bmi	playnotes
 		beq	firstframe
@@ -119,7 +138,36 @@ loop:		lda	ghostsid-1,x
 		rts
 .endproc
 
+.proc dochord
+		lda	ghostsid+$4,x
+		and	#$8
+		bne	out
+		ldy	inst0,x
+		bmi	out
+		lda	inst_chordlen,y
+		beq	out
+		cmp	chordpos0,x
+		bne	posok
+		lda	#$0
+		sta	chordpos0,x
+posok:		tya
+		asl
+		asl
+		asl
+		adc	chordpos0,x
+		tay
+		lda	inst_chord,y
+		clc
+		adc	basepitch0,x
+		clc
+		jsr	setpitch
+		inc	chordpos0,x
+out:		rts
+.endproc
+
 .proc dohr
+		lda	#$ff
+		sta	inst0,x
 		lda	#$f
 		sta	ghostsid+$5,x
 		lda	#$0
@@ -141,6 +189,7 @@ gateoff:	lda	ghostsid+$4,x
 		ldx	#$0
 		lda	(patpitchptr),y
 		bmi	cmd0
+		sec
 		jsr	setpitch
 		bpl	inst0
 cmd0:		cmp	#$81
@@ -156,6 +205,7 @@ adv0:		jsr	advpatpos
 		ldx	#$7
 		lda	(patpitchptr),y
 		bmi	cmd1
+		sec
 		jsr	setpitch
 		bpl	inst1
 cmd1:		cmp	#$81
@@ -171,6 +221,7 @@ adv1:		jsr	advpatpos
 		ldx	#$e
 		lda	(patpitchptr),y
 		bmi	cmd2
+		sec
 		jsr	setpitch
 		bpl	inst2
 cmd2:		cmp	#$81
@@ -194,7 +245,9 @@ adv2:		jsr	advpatpos
 
 .proc setpitch
 		sty	resty+1
-		tay
+		bcc	skipbase
+		sta	basepitch0,x
+skipbase:	tay
 		lda	pitches_l,y
 		sta	ghostsid,x
 		lda	pitches_h,y
@@ -208,6 +261,7 @@ resty:		ldy	#$ff
 		bcc	noslide
 		ora	#$1
 noslide:	lsr
+		sta	inst0,x
 		tay
 		lda	inst_ad,y
 		sta	ghostsid+5,x
@@ -215,9 +269,13 @@ noslide:	lsr
 		sta	ghostsid+6,x
 		lda	inst_wave,y
 		sta	wave0,x
+		lda	inst_pwidth,y
+		sta	ghostsid+3,x
 		bcs	out
 		lda	#$9
 		sta	ghostsid+4,x
+		lda	#$0
+		sta	chordpos0,x
 out:		rts
 .endproc
 
