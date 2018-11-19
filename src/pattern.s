@@ -18,13 +18,13 @@ patargptr:	.res	2
 		ldx	#$6
 loop:		asl
 		rol	patpitchptr+1
-		rol	patargptr+1
 		dex
 		bne	loop
 		sta	patargptr
 		adc	#<pattern_pitch
 		sta	patpitchptr
 		lda	patpitchptr+1
+		sta	patargptr+1
 		adc	#>pattern_pitch
 		sta	patpitchptr+1
 		lda	patargptr

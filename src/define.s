@@ -41,16 +41,16 @@ positive:	jsr	$b79e
 		lda	$65
 		sta	patargptr
 		jsr	$b79b
-		txa
 		ldy	patargptr
+		txa
 		sta	inst_ad,y
 		jsr	$b79b
-		txa
 		ldy	patargptr
+		txa
 		sta	inst_sr,y
 		jsr	$b79b
-		txa
 		ldy	patargptr
+		txa
 		sta	inst_wave,y
 		jsr	get_signedbyte
 		clc
@@ -58,8 +58,8 @@ positive:	jsr	$b79e
 		ldy	patargptr
 		sta	inst_pwidth,y
 		jsr	$b79b
-		txa
 		ldy	patargptr
+		txa
 		sta	inst_chordlen,y
 		beq	nochord
 		tya
