@@ -40,13 +40,14 @@ stoplen		= *-stopvol
 .code
 
 .proc player_start
-		jsr	$b79b
+		jsr	$b1b2
 		ldy	#bss_size
 		lda	#$0
 clearloop:	sta	bss_start-1,y
 		dey
 		bne	clearloop
-		stx	speed
+		lda	$65
+		sta	speed
 		jsr	sidout
 		lda	#$f
 		sta	ghostsid+$18
@@ -74,7 +75,7 @@ clearloop:	sta	bss_start-1,y
 		sta	stopstep
 		lda	#$1
 		sta	stoprq
-		rts
+		jmp	$0073
 .endproc
 
 .proc play

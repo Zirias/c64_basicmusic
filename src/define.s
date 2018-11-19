@@ -21,9 +21,8 @@ notes_len	= *-notes
 
 .code
 .proc def_instr
-		jsr	$b79b
-		txa
-		tay
+		jsr	$b1b2
+		ldy	$65
 		jsr	$b79b
 		txa
 		sta	inst_ad,y
@@ -54,8 +53,8 @@ clearvars:	sta	bss_start-1,x
 		dex
 		bne	clearvars
 
-		jsr	$b79b
-		txa
+		jsr	$b1b2
+		lda	$65
 		jsr	selectpattern
 		jsr	$aefd
 		jsr	$ad9e
@@ -150,7 +149,8 @@ skipendmark:	inc	$1
 .endproc
 
 .proc def_seq
-		jsr	$b79b
+		jsr	$b1b2
+		ldx	$65
 		dex
 		bne	notsq0
 		lda	#<seq0

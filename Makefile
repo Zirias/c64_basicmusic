@@ -14,7 +14,7 @@ EXTRAOBJ=obj/ldaddr.o
 endif
 
 basicmusic_LDCFG:=src/basicmusic.cfg
-basicmusic_OBJS:=$(addprefix obj/,define.o player.o pattern.o \
+basicmusic_OBJS:=$(addprefix obj/,install.o define.o player.o pattern.o \
 	pitches.o rtdata.o)
 basicmusic_BIN:=basicmusic.$(BINEXT)
 basicmusic_LABLES:=basicmusic.lbl
