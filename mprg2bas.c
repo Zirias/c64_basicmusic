@@ -49,9 +49,9 @@ int main()
     uint16_t endaddress = startaddress + (uint16_t)nread - 1;
 
     unsigned char *r = buf;
-    int remaining = 79 - printf("0fOa=%" PRIu16 "to%" PRIu16
-            ":rEb:pOa,b:nE:sY%" PRIu16 ":dA%u", startaddress, endaddress,
-            startaddress, (unsigned)*r++);
+    int remaining = 79 - printf("0 fora=%" PRIu16 "to%" PRIu16
+            ":readb:pokea,b:next:sys%" PRIu16 ":data%u", startaddress,
+            endaddress, startaddress, (unsigned)*r++);
 
     --nread;
     int lineno = 0;
@@ -63,12 +63,12 @@ int main()
         if (remaining - needed < 0)
         {
             ++lineno;
-            remaining = 77-needed;
+            remaining = 74-needed;
             if (lineno>9) --remaining;
             if (lineno>99) --remaining;
             if (lineno>999) --remaining;
             if (lineno>9999) --remaining;
-            printf("\n%ddA%u", lineno, (unsigned)*r++);
+            printf("\n%d data%u", lineno, (unsigned)*r++);
         }
         else
         {

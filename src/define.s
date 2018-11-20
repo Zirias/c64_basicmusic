@@ -17,6 +17,7 @@ bss_size = *-bss_start
 
 .data
 notes:		.byte	"c@d@ef@g@a@b"
+chans:		.byte	$0, $7, $e
 notes_len	= *-notes
 
 .code
@@ -205,25 +206,10 @@ skipendmark:	inc	$1
 .proc def_seq
 		jsr	$b1b2
 		ldx	$65
-		dex
-		bne	notsq0
-		lda	#<seq0
-		sta	patargptr
-		lda	#>seq0
-		sta	patargptr+1
-		bne	start
-notsq0:		dex
-		bne	notsq1
-		lda	#<seq1
-		sta	patargptr
-		lda	#>seq1
-		sta	patargptr+1
-		bne	start
-notsq1:		lda	#<seq2
-		sta	patargptr
-		lda	#>seq2
-		sta	patargptr+1
-start:		lda	#$0
+		lda	chans-1,x
+		tax
+		jsr	selectsequence
+		lda	#$0
 		sta	patpitchptr
 loop:		lda	#$2c
 		ldy	#$0

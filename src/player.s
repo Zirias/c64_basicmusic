@@ -165,6 +165,31 @@ out:		rts
 .endproc
 
 .proc dohr
+		ldy	patpos0,x
+		bne	posok
+advseq:		jsr	selectsequence
+		ldy	seqpos0,x
+ldseq:		lda	(patargptr),y
+		bpl	seqok
+		and	#$7f
+		tay
+		bpl	ldseq
+seqok:		sta	pat0,x
+		iny
+		tya
+		sta	seqpos0,x
+		ldy	patpos0,x
+posok:		lda	pat0,x
+		jsr	selectpattern
+		lda	(patpitchptr),y
+		bpl	note
+		cmp	#$ff
+		bne	out
+		lda	#$0
+		sta	patpos0,x
+		beq	advseq
+note:		lda	(patargptr),y
+		bmi	out
 		lda	#$ff
 		sta	inst0,x
 		lda	#$f
@@ -174,7 +199,7 @@ out:		rts
 gateoff:	lda	ghostsid+$4,x
 		and	#$fe
 		sta	ghostsid+$4,x
-		rts
+out:		rts
 .endproc
 
 .proc ffstep
@@ -182,64 +207,62 @@ gateoff:	lda	ghostsid+$4,x
 		sta	wave0
 		sta	wave1
 		sta	wave2
-		lda	pat0
-		jsr	selectpattern
-		ldy	patpos0
-		ldx	#$0
-		lda	(patpitchptr),y
-		bmi	cmd0
-		sec
-		jsr	setpitch
-		bpl	inst0
-cmd0:		cmp	#$81
-		bne	adv0
-		jsr	dohr::gateoff
-		bcs	adv0
-inst0:		lda	(patargptr),y
-		jsr	setinst
-adv0:		jsr	advpatpos
-		lda	pat1
-		jsr	selectpattern
-		ldy	patpos1
-		ldx	#$7
-		lda	(patpitchptr),y
-		bmi	cmd1
-		sec
-		jsr	setpitch
-		bpl	inst1
-cmd1:		cmp	#$81
-		bne	adv1
-		jsr	dohr::gateoff
-		bcs	adv1
-inst1:		lda	(patargptr),y
-		jsr	setinst
-adv1:		jsr	advpatpos
-		lda	pat2
-		jsr	selectpattern
-		ldy	patpos2
 		ldx	#$e
+chanloop:	lda	pat0,x
+		jsr	selectpattern
+		ldy	patpos0,x
 		lda	(patpitchptr),y
-		bmi	cmd2
+		bmi	cmd
 		sec
 		jsr	setpitch
-		bpl	inst2
-cmd2:		cmp	#$81
-		bne	adv2
+		bpl	inst
+cmd:		cmp	#$81
+		bne	adv
 		jsr	dohr::gateoff
-		bcs	adv2
-inst2:		lda	(patargptr),y
-		jsr	setinst
-adv2:		jsr	advpatpos
-		jmp	play_out
-.endproc
-
-.proc advpatpos
-		lda	patpos0,x
+		bcs	adv
+inst:		lda	(patargptr),y
+		asl
+		bcc	noslide
+		ora	#$1
+noslide:	lsr
+		sta	inst0,x
+		tay
+		lda	inst_ad,y
+		sta	ghostsid+5,x
+		lda	inst_sr,y
+		sta	ghostsid+6,x
+		lda	inst_wave,y
+		sta	wave0,x
+		bcs	skipffval
+		lda	#$9
+		sta	ghostsid+4,x
+		lda	#$0
+		sta	chordpos0,x
+skipffval:	lda	#$0
+		sta	ghostsid+3,x
+		lda	inst_pwidth,y
+		asl
+		rol	ghostsid+3,x
+		asl
+		rol	ghostsid+3,x
+		asl
+		rol	ghostsid+3,x
+		asl
+		rol	ghostsid+3,x
+		sta	ghostsid+2,x
+adv:		lda	patpos0,x
 		sec
 		adc	#$0
 		and	#$3f
 		sta	patpos0,x
-		rts
+nextchan:	txa
+		lsr
+		tax
+		beq	out
+		bcc	chanloop
+		ldx	#$0
+		beq	chanloop
+out:		jmp	play_out
 .endproc
 
 .proc setpitch
@@ -255,42 +278,9 @@ resty:		ldy	#$ff
 		rts
 .endproc
 
-.proc setinst
-		asl
-		bcc	noslide
-		ora	#$1
-noslide:	lsr
-		sta	inst0,x
-		tay
-		lda	inst_ad,y
-		sta	ghostsid+5,x
-		lda	inst_sr,y
-		sta	ghostsid+6,x
-		lda	inst_wave,y
-		sta	wave0,x
-		bcs	out
-		lda	#$9
-		sta	ghostsid+4,x
-		lda	#$0
-		sta	chordpos0,x
-out:		lda	#$0
-		sta	ghostsid+3,x
-		lda	inst_pwidth,y
-		asl
-		rol	ghostsid+3,x
-		asl
-		rol	ghostsid+3,x
-		asl
-		rol	ghostsid+3,x
-		asl
-		rol	ghostsid+3,x
-		sta	ghostsid+2,x
-		rts
-.endproc
-
 .proc hrstep
 		lda	stoprq
-		beq	nostop
+		beq	hrchans
 		ldx	stopstep
 		bpl	fadeout
 		lda	#$0
@@ -306,78 +296,12 @@ fadeout:	lda	stopvol,x
 		sta	ghostsid+$18
 		dex
 		stx	stopstep
-nostop:		ldy	patpos0
-		bne	pos0ok
-advseq0:	ldx	seqpos0
-ldseq0:		lda	seq0,x
-		bpl	seq0ok
-		and	#$7f
-		tax
-		bpl	ldseq0
-seq0ok:		sta	pat0
-		inx
-		stx	seqpos0
-pos0ok:		lda	pat0
-		jsr	selectpattern
-		lda	(patpitchptr),y
-		bpl	note0
-		cmp	#$ff
-		bne	hr1
-		ldy	#$0
-		sty	patpos0
-		beq	advseq0
-note0:		lda	(patargptr),y
-		bmi	hr1
-		ldx	#$0
+hrchans:	ldx	#$0
 		jsr	dohr
-hr1:		ldy	patpos1
-		bne	pos1ok
-advseq1:	ldx	seqpos1
-ldseq1:		lda	seq1,x
-		bpl	seq1ok
-		and	#$7f
-		tax
-		bpl	ldseq1
-seq1ok:		sta	pat1
-		inx
-		stx	seqpos1
-pos1ok:		lda	pat1
-		jsr	selectpattern
-		lda	(patpitchptr),y
-		bpl	note1
-		cmp	#$ff
-		bne	hr2
-		ldy	#$0
-		sty	patpos1
-		beq	advseq1
-note1:		lda	(patargptr),y
-		bmi	hr2
 		ldx	#$7
 		jsr	dohr
-hr2:		ldy	patpos2
-		bne	pos2ok
-advseq2:	ldx	seqpos2
-ldseq2:		lda	seq2,x
-		bpl	seq2ok
-		and	#$7f
-		tax
-		bpl	ldseq2
-seq2ok:		sta	pat2
-		inx
-		stx	seqpos2
-pos2ok:		lda	pat2
-		jsr	selectpattern
-		lda	(patpitchptr),y
-		bpl	note2
-		cmp	#$ff
-		bne	out
-		ldy	#$0
-		sty	patpos2
-		beq	advseq2
-note2:		lda	(patargptr),y
-		bmi	out
 		ldx	#$e
 		jsr	dohr
-out:		jmp	play_out
+		jmp	play_out
 .endproc
 

@@ -1,6 +1,7 @@
 .include "rtdata.inc"
 
 .export selectpattern
+.export selectsequence
 
 .exportzp patpitchptr
 .exportzp patargptr
@@ -12,6 +13,7 @@ patargptr:	.res	2
 .code
 
 .proc selectpattern
+		stx	restx+1
 		ldx	#$0
 		stx	patpitchptr+1
 		stx	patargptr+1
@@ -33,6 +35,27 @@ loop:		asl
 		lda	patargptr+1
 		adc	#>pattern_arg
 		sta	patargptr+1
+restx:		ldx	#$ff
+		rts
+.endproc
+
+.proc selectsequence
+		stx	restx+1
+		cpx	#$e
+		beq	select2
+		cpx	#$7
+		beq	select1
+		lda	#<seq0
+		ldx	#>seq0
+		bne	select
+select1:	lda	#<seq1
+		ldx	#>seq1
+		bne	select
+select2:	lda	#<seq2
+		ldx	#>seq2
+select:		sta	patargptr
+		stx	patargptr+1
+restx:		ldx	#$ff
 		rts
 .endproc
 
