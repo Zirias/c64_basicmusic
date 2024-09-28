@@ -3,8 +3,7 @@ obj/
 *~
 *.lbl
 *.map
-*.prg
 *.bin
 *.exo
 *.exe
-
+/*.prg
